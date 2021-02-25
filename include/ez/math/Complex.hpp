@@ -1,228 +1,140 @@
 #pragma once
 #include <cmath>
+#include <complex>
 #include <glm/vec2.hpp>
 
-namespace ez {
+namespace glm {
 	template<typename T>
-	struct Complex
-	{
-		constexpr Complex()
-			: r{ static_cast<T>(1) }
-			, i{ static_cast<T>(0) }
-		{}
-		constexpr Complex(T _r, T _i)
-			: r{ _r }
-			, i{ _i }
-		{}
-		~Complex() = default;
-		constexpr Complex(const Complex&) = default;
-		constexpr Complex& operator=(const Complex&) = default;
-		Complex(Complex&&) noexcept = default;
-		Complex& operator=(Complex&&) noexcept = default;
+	using tcomplex = std::complex<T>;
 
-		// These cannot be constexpr, because compiler treats 'data' as inactive union member.
-		T& operator[](size_t index) {
-			return data[index];
-		}
-		T operator[](size_t index) const {
-			return data[index];
-		}
+	using complex = tcomplex<float>;
+	using dcomplex = tcomplex<double>;
 
-		constexpr T real() const {
-			return r;
-		}
-		constexpr T& real() {
-			return r;
-		}
-		constexpr T imag() const {
-			return i;
-		}
-		constexpr T& imag() {
-			return i;
-		}
+	template<typename T>
+	T dot(const tcomplex<T>& lh, const tcomplex<T>& rh) noexcept {
+		return lh.real() * rh.real() + lh.imag() * rh.imag();
+	}
+	template<typename T>
+	T dot(const tcomplex<T>& lh, const glm::vec<2, T>& rh) noexcept {
+		return lh.real() * rh.x + lh.imag() * rh.y;
+	}
+	template<typename T>
+	T dot(const glm::vec<2, T>& lh, const tcomplex<T>& rh) noexcept {
+		return dot(rh, lh);
+	}
 
-		T length() const {
-			return std::sqrt(norm());
-		}
-		constexpr T norm() const {
-			return r * r + i * i;
-		}
-		T arg() const {
-			return std::atan2(i, r);
-		}
-		T cosAngle() const {
-			return r / length();
-		}
-		T sinAngle() const {
-			return i / length();
-		}
-		T dotAngle() const {
-			return std::acos(cosAngle());
-		}
-		constexpr T dot(const Complex& other) const {
-			return r * other.r + i * other.i;
-		}
-		constexpr Complex conj() const {
-			return Complex{r, -i};
-		}
-		Complex normal() const {
-			return Complex{ *this } / length();
-		}
-		Complex& normalize() {
-			(*this) /= length();
-			return *this;
-		}
+	template<typename T>
+	T length(const tcomplex<T>& value) noexcept {
+		return std::abs(value);
+	}
+	template<typename T>
+	T length2(const tcomplex<T>& value) noexcept {
+		return std::norm(value);
+	}
 
-		constexpr glm::tvec2<T> rotate(const glm::tvec2<T>& v) const {
-			return glm::tvec2<T>{
-				v.x* r - v.y * i,
-				v.x* i + v.y * r
-			};
-		}
-		constexpr glm::tvec2<T> reverseRotate(const glm::tvec2<T>& v) const {
-			T denom = static_cast<T>(1) / norm();
-			return glm::tvec2<T>{
-				(v.x * r + v.y * i) * denom,
-				(v.y * r - v.x * i) * denom
-			};
-		}
-		constexpr Complex rotate(Complex o) const {
-			return Complex{
-				o.r * r - o.i * i,
-				o.r * i + o.i * r
-			};
-		}
-		constexpr Complex reverseRotate(Complex o) const {
-			T denom = static_cast<T>(1) / norm();
-			return Complex{
-				(o.r* r + o.i * i)* denom,
-				(o.i* r - o.r * i)* denom
-			};
-		}
-		constexpr glm::tvec2<T> rotate(const glm::tvec2<T>& p, const glm::tvec2<T>& o) const {
-			/// Instead of subtracting p from o, I distributed the products.
-			/// For some reason this increases accuracy dramatically.
-			return glm::vec2{
-				p.x * r - o.x * r - p.y * i + o.y * i + o.x,
-				p.x * i - o.x * i + p.y * r - o.y * r + o.y
-			};
-		}
-		constexpr glm::tvec2<T> reverseRotate(const glm::tvec2<T>& p, const glm::tvec2<T>& o) const {
-			T denom = static_cast<T>(1) / norm();
-			return glm::tvec2<T>{
-				(p.x * r - o.x * r + p.y * i - o.y * i) * denom,
-				(p.y * r - o.y * r - p.x * i - o.x * i) * denom
-			};
-		}
+	template<typename T>
+	tcomplex<T> normalize(const tcomplex<T>& value) noexcept {
+		return value / length(value);
+	}
 
-		// sin and cos are not constexpr, so these can't be either.
-		static Complex fromPolar(T theta) {
-			return Complex{ std::cos(theta), std::sin(theta) };
-		}
-		static Complex fromPolar(T theta, T len) {
-			return Complex{ std::cos(theta) * len, std::sin(theta) * len };
-		}
+	template<typename T>
+	glm::tvec2<T> vec2_cast(const tcomplex<T>& value) noexcept {
+		return glm::tvec2<T>{value.real(), value.imag()};
+	}
 
-		Complex& operator+=(const Complex& o) {
-			r += o.r;
-			i += o.i;
-			return *this;
-		}
-		Complex& operator-=(const Complex& o) {
-			r -= o.r;
-			i -= o.i;
-			return *this;
-		}
-		Complex& operator*=(const Complex& o) {
-			(*this) = rotate(o);
-			return *this;
-		}
-		Complex& operator/=(const Complex& o) {
-			(*this) = reverseRotate(o);
-			return *this;
-		}
-
-		Complex& operator+=(T amount) {
-			r += amount;
-			i += amount;
-			return *this;
-		}
-		Complex& operator-=(T amount) {
-			r -= amount;
-			i -= amount;
-			return *this;
-		}
-		Complex& operator*=(T amount) {
-			r *= amount;
-			i *= amount;
-			return *this;
-		}
-		Complex& operator/=(T amount) {
-			r /= amount;
-			i /= amount;
-			return *this;
-		}
-
-		union {
-			struct {
-				T r;
-				T i;
-			};
-			T data[2];
+	template<typename T>
+	glm::tmat2x2<T> mat2_cast(const tcomplex<T>& value) noexcept {
+		return glm::tmat2x2<T>{
+			glm::tvec2<T>{value.real(), value.imag()},
+				glm::tvec2<T>{-value.imag(), value.real()}
 		};
-	};
-
-	template<typename T>
-	constexpr Complex<T> operator+(const Complex<T> & a, const Complex<T>& b) {
-		return Complex<T>{a.r + b.r, a.i + b.i};
-	}
-	template<typename T>
-	constexpr Complex<T> operator-(const Complex<T>& a, const Complex<T>& b) {
-		return Complex<T>{a.r - b.r, a.i - b.i};
-	}
-	template<typename T>
-	constexpr Complex<T> operator*(const Complex<T>& a, const Complex<T>& b) {
-		return a.rotate(b);
-	}
-	template<typename T>
-	constexpr Complex<T> operator/(const Complex<T>& a, const Complex<T>& b) {
-		return a.reverseRotate(b);
 	}
 
 	template<typename T>
-	constexpr Complex<T> operator+(T a, const Complex<T>& b) {
-		return Complex<T>{a + b.r, a + b.i};
-	}
-	template<typename T>
-	constexpr Complex<T> operator-(T a, const Complex<T>& b) {
-		return Complex<T>{a - b.r, a - b.i};
-	}
-	template<typename T>
-	constexpr Complex<T> operator*(T a, const Complex<T>& b) {
-		return Complex<T>{a * b.r, a * b.i};
-	}
-	template<typename T>
-	constexpr Complex<T> operator/(T a, const Complex<T>& b) {
-		return Complex<T>{a / b.r, a / b.i};
+	glm::tmat3x3<T> mat3_cast(const tcomplex<T>& value) noexcept {
+		return glm::tmat3x3<T>{
+			glm::tvec3<T>{value.real(), value.imag(), T(0)},
+				glm::tvec3<T>{-value.imag(), value.real(), T(0)},
+				glm::tvec3<T>{T(0), T(0), T(1)},
+		};
 	}
 
 	template<typename T>
-	constexpr Complex<T> operator+(const Complex<T>& a, T b) {
-		return Complex<T>{a.r + b, a.i + b};
-	}
-	template<typename T>
-	constexpr Complex<T> operator-(const Complex<T>& a, T b) {
-		return Complex<T>{a.r - b, a.i - b};
-	}
-	template<typename T>
-	constexpr Complex<T> operator*(const Complex<T>& a, T b) {
-		return Complex<T>{a.r * b, a.i * b};
-	}
-	template<typename T>
-	constexpr Complex<T> operator/(const Complex<T>& a, T b) {
-		return Complex<T>{a.r / b, a.i / b};
+	glm::tmat4x4<T> mat4_cast(const tcomplex<T>& value) noexcept {
+		return glm::tmat4x4<T>{
+			glm::tvec4<T>{value.real(), value.imag(), T(0), T(0)},
+				glm::tvec4<T>{-value.imag(), value.real(), T(0), T(0)},
+				glm::tvec4<T>{T(0), T(0), T(1), T(0)},
+				glm::tvec4<T>{T(0), T(0), T(0), T(1)},
+		};
 	}
 
-	using Complexd = Complex<double>;
-	using Complexf = Complex<float>;
+	template<typename T>
+	tcomplex<T> complex_cast(const glm::tvec2<T>& value) noexcept {
+		return tcomplex<T>{value.x, value.y};
+	}
+
+	template<typename T>
+	tcomplex<T> complex_cast(const glm::tmat2x2<T>& value) noexcept {
+		return tcomplex<T>{value[0].x, value[0].y};
+	}
+
+	template<typename T>
+	tcomplex<T> conjugate(const tcomplex<T>& value) noexcept {
+		return std::conj(value);
+	}
+
+	template<typename T>
+	tcomplex<T> inverse(const tcomplex<T> & value) noexcept {
+		return conjugate(value) / std::norm(value);
+	}
+
+	template<typename T>
+	T angle(const tcomplex<T>& value) noexcept {
+		return std::arg(value);
+	}
+
+	template<typename T>
+	tcomplex<T> exp(const tcomplex<T>& value) noexcept {
+		return std::exp(value);
+	}
+
+	template<typename T>
+	tcomplex<T> sqrt(const tcomplex<T> & value) noexcept {
+		return std::sqrt(value);
+	}
+
+	template<typename T>
+	tcomplex<T> log(const tcomplex<T>& value) noexcept {
+		return std::log(value);
+	}
+
+	template<typename T>
+	tcomplex<T> pow(const tcomplex<T>& value, const T& exponent) noexcept {
+		return std::pow(value, exponent);
+	}
+	template<typename T>
+	tcomplex<T> pow(const tcomplex<T>& value, const tcomplex<T>& exponent) noexcept {
+		return std::pow(value, exponent);
+	}
+	template<typename T>
+	tcomplex<T> pow(const T& value, const tcomplex<T>& exponent) noexcept {
+		return std::pow(value, exponent);
+	}
+
+	template<typename T>
+	tcomplex<T> polar(const T& theta, const T& radius = T(1)) noexcept {
+		return tcomplex<T>::polar(radius, theta);
+	}
+
+	template<typename T>
+	glm::tvec2<T> rotate(const tcomplex<T>& value, const glm::tvec2<T>& v) noexcept {
+		tcomplex<T> tmp{ v.x, v.y };
+		return vec2_cast(value * tmp);
+	}
+
+	template<typename T>
+	glm::tcomplex<T> rotation(const glm::tvec2<T>& from, const glm::tvec2<T>& to) noexcept {
+		return glm::complex_cast(to) * glm::conjugate(glm::complex_cast(from));
+	}
 };
