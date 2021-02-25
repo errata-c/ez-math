@@ -3,21 +3,19 @@
 #include <iostream>
 #include <ctime>
 
-#include <ez/math/Complex.hpp>
-#include <ez/math/Polynomial.hpp>
-#include <ez/math/MathConstants.hpp>
-#include <ez/math/Triangle.hpp>
-#include <ez/math/PsuedoRandom.hpp>
-
-#include <ez/math/Trig.hpp>
+#include <ez/math/complex.hpp>
+#include <ez/math/poly.hpp>
+#include <ez/math/constants.hpp>
+#include <ez/math/trig.hpp>
+#include <ez/math/prng.hpp>
 
 int rng_test() {
 	srand(static_cast<unsigned>(time(NULL)));
 	std::uint32_t rnum = rand();
 
-	ez::SplitMix64 smix{ rnum };
+	ez::prng::SplitMix64 smix{ rnum };
 
-	ez::XorShift128 xmix{
+	ez::prng::XorShift128 xmix{
 		static_cast<std::uint32_t>(smix.advance()),
 		static_cast<std::uint32_t>(smix.advance()),
 		static_cast<std::uint32_t>(smix.advance()),
@@ -29,22 +27,22 @@ int rng_test() {
 	std::uint32_t val2 = 0xF;
 	std::uint64_t val3 = 0xFF;
 
-	if (ez::rotl8(val0, 1) != 2) {
+	if (ez::prng::rotl8(val0, 1) != 2) {
 		fmt::print("Incorrect left rotation\n");
 		return -1;
 	}
 
-	if (ez::rotr8(val0, 1) != 128) {
+	if (ez::prng::rotr8(val0, 1) != 128) {
 		fmt::print("Incorrect right rotation\n");
 		return -1;
 	}
 
-	if (ez::rotl32(val2, 8) != (0xFu << 8)) {
+	if (ez::prng::rotl32(val2, 8) != (0xFu << 8)) {
 		fmt::print("Incorrect left rotation\n");
 		return -1;
 	}
 
-	if (ez::rotr32(val2, 8) != (0xFu << 24)) {
+	if (ez::prng::rotr32(val2, 8) != (0xFu << 24)) {
 		fmt::print("Incorrect right rotation\n");
 		return -1;
 	}

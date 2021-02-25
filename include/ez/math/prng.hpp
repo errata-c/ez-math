@@ -5,8 +5,10 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <xxh3.h>
 
-namespace ez {
+namespace ez::prng {
+
 	inline std::uint8_t rotl8(std::uint8_t val, std::uint32_t amount) {
 		assert(amount < 8);
 		return static_cast<std::uint8_t>(val << amount) | (val >> (((~amount)+1) & 7u));
@@ -41,54 +43,78 @@ namespace ez {
 		return (val >> amount) | (val << (((~amount) + 1) & 63u));
 	}
 
+	static uint32_t xxh32(const void* data, std::size_t length) noexcept {
+		return XXH32(data, length, 0);
+	}
+	template<typename T>
+	static uint32_t xxh32(std::basic_string_view<T> view) noexcept {
+		return xxh32(view.data(), view.length());
+	}
+
+	static uint64_t xxh64(const void* data, std::size_t length) noexcept {
+		return XXH64(data, length, 0);
+	}
+	template<typename T>
+	static uint64_t xxh64(std::basic_string_view<T> view) noexcept {
+		return xxh64(view.data(), view.length());
+	}
+
+	static uint64_t xxh3_64(const void* data, std::size_t length) noexcept {
+		return XXH3_64bits(data, length);
+	}
+	template<typename T>
+	static uint64_t xxh3_64(std::basic_string_view<T> view) noexcept {
+		return xxh3_64(view.data(), view.length());
+	}
 
 	namespace intern {
+		/*
+		djb2
+			This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c.
+		Another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i];
+		The magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
+		*/
 		template<typename T>
-		static constexpr std::uint32_t bjb2HashValue(T val, std::uint32_t seed = 5381u) {
+		static constexpr std::uint32_t djb2HashValue(T val, std::uint32_t seed = 5381u) {
 			using utype = std::make_unsigned_t<T>;
 			for (int i = 0; i < sizeof(utype); ++i) {
 				// Bitshifting avoids any endianess problems, and optimizes well.
-				seed = (seed * 33u) ^ static_cast<std::uint32_t>((val & (static_cast<utype>(0xFF) << (i << 3))) >> (i << 3));
+				seed = (seed * 33u) ^ static_cast<std::uint32_t>(val & (static_cast<utype>(0xFF) << (i << 3)));
 			}
 
 			return seed;
 		}
 	};
 
-	/*
-	djb2
-		This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. 
-	Another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; 
-	The magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained. 
-	*/
+	
 	template<typename T>
-	static std::uint32_t bjb2Hash32(const T* str, std::size_t len, std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash32 must be integral!");
+	static std::uint32_t djb2_32(const T* str, std::size_t len, std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash32 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
 		const utype* it = reinterpret_cast<const utype*>(str);
 		const utype* end = it + len;
 		while (it != end) {
-			seed = intern::bjb2HashValue<utype>(*it, seed);
+			seed = intern::djb2HashValue<utype>(*it, seed);
 			++it;
 		}
 
 		return seed;
 	};
 	template<typename T>
-	static std::uint32_t bjb2Hash32(const std::basic_string<T>& str, std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash32 must be integral!");
+	static std::uint32_t djb2_32(const std::basic_string<T>& str, std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash32 must be integral!");
 
-		return bjb2Hash32(str.data(), str.size(), seed);
+		return djb2_32(str.data(), str.size(), seed);
 	};
 	template<typename T>
-	static std::uint32_t bjb2Hash32_cstr(const T* cstr, std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash32 must be integral!");
+	static std::uint32_t djb2_32_cstr(const T* cstr, std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash32 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
 		const utype* it = reinterpret_cast<const utype*>(cstr);
 		while (*it != 0) {
-			seed = intern::bjb2HashValue<utype>(*it, seed);
+			seed = intern::djb2HashValue<utype>(*it, seed);
 			++it;
 		}
 
@@ -98,64 +124,64 @@ namespace ez {
 
 	// Compile time constexpr version
 	template<std::size_t N, typename T>
-	static constexpr std::uint32_t bjb2Hash32(const T(&str)[N], std::uint32_t seed = 5381u) noexcept {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash32 must be integral!");
+	static constexpr std::uint32_t djb2_32(const T(&str)[N], std::uint32_t seed = 5381u) noexcept {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash32 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
 
 		for (std::size_t u = 0; (u + 1) < N; ++u) {
-			seed = intern::bjb2HashValue(static_cast<utype>(str[u]), seed);
+			seed = intern::djb2HashValue(static_cast<utype>(str[u]), seed);
 		}
 
 		return seed;
 	};
 	template<typename T>
-	static constexpr std::uint32_t bjb2Hash32(const std::basic_string_view<T>& str, std::uint32_t seed = 5381u) noexcept {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash32 must be integral!");
+	static constexpr std::uint32_t djb2_32(const std::basic_string_view<T>& str, std::uint32_t seed = 5381u) noexcept {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash32 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
 
 		for (std::size_t u = 0; u < str.size(); ++u) {
-			seed = intern::bjb2HashValue(static_cast<utype>(str[u]), seed);
+			seed = intern::djb2HashValue(static_cast<utype>(str[u]), seed);
 		}
 
 		return seed;
 	};
 
 	template<typename T>
-	static std::uint64_t bjb2Hash64(const T* str, std::size_t len, std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash64 must be integral!");
+	static std::uint64_t djb2_64(const T* str, std::size_t len, std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash64 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
-		std::uint32_t carry = intern::bjb2HashValue(seed);
+		std::uint32_t carry = intern::djb2HashValue(seed);
 
 		const utype* it = reinterpret_cast<const utype*>(str);
 		const utype* end = it + len;
 		while (it != end) {
 			utype val = *it;
-			seed = intern::bjb2HashValue(val, seed);
-			carry = intern::bjb2HashValue(seed, carry);
+			seed = intern::djb2HashValue(val, seed);
+			carry = intern::djb2HashValue(seed, carry);
 			++it;
 		}
 
 		return static_cast<std::uint64_t>(seed) | (static_cast<std::uint64_t>(carry) << 32);
 	};
 	template<typename T>
-	static std::uint64_t bjb2Hash64(const std::basic_string<T>& str, std::uint32_t seed = 5381u) {
-		return bjb2Hash64(str.data(), str.size(), seed);
+	static std::uint64_t djb2_64(const std::basic_string<T>& str, std::uint32_t seed = 5381u) {
+		return djb2_64(str.data(), str.size(), seed);
 	};
 	template<typename T>
-	static std::uint64_t bjb2Hash64_cstr(const T* cstr, std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash64 must be integral!");
+	static std::uint64_t djb2_64_cstr(const T* cstr, std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash64 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
-		std::uint32_t carry = intern::bjb2HashValue(seed);
+		std::uint32_t carry = intern::djb2HashValue(seed);
 
 		const utype* it = reinterpret_cast<const utype*>(cstr);
 		while (*it != 0) {
 			utype val = *it;
-			seed = intern::bjb2HashValue(val, seed);
-			carry = intern::bjb2HashValue(seed, carry);
+			seed = intern::djb2HashValue(val, seed);
+			carry = intern::djb2HashValue(seed, carry);
 			++it;
 		}
 
@@ -164,27 +190,27 @@ namespace ez {
 
 	// Compile time constexpr
 	template<std::size_t N, typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	static constexpr std::uint64_t bjb2Hash64(const T(&str)[N], std::uint32_t seed = 5381u) {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash64 must be integral!");
+	static constexpr std::uint64_t djb2_64(const T(&str)[N], std::uint32_t seed = 5381u) {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash64 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
-		std::uint32_t carry = intern::bjb2HashValue(seed);
+		std::uint32_t carry = intern::djb2HashValue(seed);
 		for (std::size_t i = 0; (i+1) < N; ++i) {
-			seed = intern::bjb2HashValue(str[i], seed);
-			carry = intern::bjb2HashValue(seed, carry);
+			seed = intern::djb2HashValue(str[i], seed);
+			carry = intern::djb2HashValue(seed, carry);
 		}
 
 		return static_cast<std::uint64_t>(seed) | (static_cast<std::uint64_t>(carry) << 32);
 	};
 	template<typename T>
-	static constexpr std::uint64_t bjb2Hash64(const std::basic_string_view<T>& str, std::uint32_t seed = 5381u) noexcept {
-		static_assert(std::is_integral_v<T>, "The value type passed to ez::bjb2Hash64 must be integral!");
+	static constexpr std::uint64_t djb2_64(const std::basic_string_view<T>& str, std::uint32_t seed = 5381u) noexcept {
+		static_assert(std::is_integral_v<T>, "The value type passed to ez::djb2Hash64 must be integral!");
 
 		using utype = std::make_unsigned_t<T>;
-		std::uint32_t carry = intern::bjb2HashValue(seed);
+		std::uint32_t carry = intern::djb2HashValue(seed);
 		for (std::size_t i = 0; i < str.size(); ++i) {
-			seed = intern::bjb2HashValue(str[i], seed);
-			carry = intern::bjb2HashValue(seed, carry);
+			seed = intern::djb2HashValue(str[i], seed);
+			carry = intern::djb2HashValue(seed, carry);
 		}
 
 		return static_cast<std::uint64_t>(seed) | (static_cast<std::uint64_t>(carry) << 32);
@@ -485,14 +511,20 @@ namespace ez {
 	};
 
 
-
 	static float randomToFloat(std::uint32_t value) {
-		constexpr float inv = 1.f / static_cast<float>(std::numeric_limits<std::uint32_t>::max());
+		constexpr float maxval = static_cast<float>(1u << 23);
+		constexpr float inv = 1.f / static_cast<float>(maxval);
+
+		value = value >> 9; // Only the 23 most significant bits can be used.
+		// Its assumed that the values of the bits are uniformly random.
+
 		return static_cast<float>(value) * inv;
 	}
 
 	static double randomToDouble(std::uint64_t value) {
-		constexpr double inv = 1.0 / static_cast<double>(std::numeric_limits<std::uint64_t>::max());
+		constexpr double maxval = static_cast<double>(1ull << 52);
+		constexpr double inv = 1.0 / static_cast<double>(maxval);
+		value = value >> 12;
 		return static_cast<double>(value) * inv;
 	}
 };

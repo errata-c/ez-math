@@ -4,10 +4,10 @@
 #include <ctime>
 #include <array>
 
-#include <ez/math/Polynomial.hpp>
-#include <ez/math/MathConstants.hpp>
-#include <ez/math/Triangle.hpp>
-#include <ez/math/PsuedoRandom.hpp>
+#include <ez/math/poly.hpp>
+#include <ez/math/constants.hpp>
+#include <ez/math/trig.hpp>
+#include <ez/math/prng.hpp>
 
 int main() {
 	fmt::print("First, expected values: 0.5\n");
@@ -18,7 +18,7 @@ int main() {
 			c = 1278;
 
 		std::array<double, 2> roots;
-		int count = ez::Polynomial::solveQuadratic(a, b, c, roots.begin());
+		int count = ez::poly::solveQuadratic(a, b, c, roots.begin());
 
 		for (int i = 0; i < count; ++i) {
 			fmt::print("roots[{}] == {}\n", i, roots[i]);
@@ -33,7 +33,7 @@ int main() {
 			c = -289.8;
 
 		std::array<double, 2> roots;
-		int count = ez::Polynomial::solveQuadratic(a, b, c, roots.begin());
+		int count = ez::poly::solveQuadratic(a, b, c, roots.begin());
 
 		for (int i = 0; i < count; ++i) {
 			fmt::print("roots[{}] == {}\n", i, roots[i]);
@@ -47,7 +47,7 @@ int main() {
 			b = 0.0, 
 			c = -1.0;
 		std::array<double, 2> roots;
-		int count = ez::Polynomial::solveQuadratic(a, b, c, roots.begin());
+		int count = ez::poly::solveQuadratic(a, b, c, roots.begin());
 
 		for (int i = 0; i < count; ++i) {
 			fmt::print("roots[{}] == {}\n", i, roots[i]);

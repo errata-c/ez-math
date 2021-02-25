@@ -12,19 +12,23 @@ set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/${PACK_NAME}" CACHE STRING "The rel
 set(BUILD_TESTS OFF CACHE BOOL "Build the tests for ${PACK_NAME} library.")
 
 find_package(glm CONFIG REQUIRED)
+find_package(ez-meta CONFIG REQUIRED)
+find_package(xxHash CONFIG REQUIRED)
 
 add_library(ez-math INTERFACE)
 
-target_include_directories(ez-math 
-	INTERFACE
+target_include_directories(ez-math INTERFACE
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 target_compile_features(ez-math INTERFACE cxx_std_17)
-target_compile_definitions(ez-math INTERFACE $<$<PLATFORM_ID:Windows>:NOMINMAX>)
+target_compile_definitions(ez-math INTERFACE "$<$<PLATFORM_ID:Windows>:NOMINMAX>")
 target_compile_options(ez-math INTERFACE "$<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:MSVC>:/permissive->>")
-target_link_libraries(ez-math INTERFACE glm)
+target_link_libraries(ez-math INTERFACE glm ez::meta xxHash::xxhash)
+set_target_properties(ez-math PROPERTIES EXPORT_NAME "math")
+
+add_library(ez::math ALIAS ez-math)
 
 if(${BUILD_TESTS})
 	add_subdirectory("test")
@@ -47,6 +51,7 @@ install(TARGETS ez-math
 
 install_package(
 	NAME "ez-math"
+	NAMESPACE "ez::"
 	DESTINATION "${CONFIG_DIR}"
 	EXPORT "ez-math-targets"
 	VERSION "${EZ_MATH_VERSION}"

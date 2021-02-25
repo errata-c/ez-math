@@ -3,18 +3,16 @@
 #include <iostream>
 #include <ctime>
 
-#include <ez/math/Complex.hpp>
-#include <ez/math/Polynomial.hpp>
-#include <ez/math/MathConstants.hpp>
-#include <ez/math/Triangle.hpp>
-#include <ez/math/PsuedoRandom.hpp>
-
-#include <ez/math/Trig.hpp>
+#include <ez/math/complex.hpp>
+#include <ez/math/poly.hpp>
+#include <ez/math/constants.hpp>
+#include <ez/math/trig.hpp>
+#include <ez/math/prng.hpp>
 
 int solve_test() {
 	float a = 1, b = 0, c = -1;
 	float roots[2];
-	int count = ez::Polynomial::solveQuadratic(a, b, c, roots);
+	int count = ez::poly::solveQuadratic(a, b, c, roots);
 
 	if (count != 2) {
 		fmt::print("Incorrect number of solutions.\n");

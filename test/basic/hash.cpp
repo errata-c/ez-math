@@ -3,11 +3,11 @@
 #include <iostream>
 #include <ctime>
 
-#include <ez/math/Complex.hpp>
-#include <ez/math/Polynomial.hpp>
-#include <ez/math/MathConstants.hpp>
-#include <ez/math/Triangle.hpp>
-#include <ez/math/PsuedoRandom.hpp>
+#include <ez/math/complex.hpp>
+#include <ez/math/poly.hpp>
+#include <ez/math/constants.hpp>
+#include <ez/math/trig.hpp>
+#include <ez/math/prng.hpp>
 
 #include <ez/math/Trig.hpp>
 
@@ -23,20 +23,20 @@ int hash_test() {
 	
 	{ // 32bit Hashing
 	// Make sure the constexpr version of hash works:
-		static constexpr std::uint32_t constHash0 = ez::bjb2Hash32(name0);
-		static constexpr std::uint32_t constHash1 = ez::bjb2Hash32(name1);
-		static constexpr std::uint32_t constHash2 = ez::bjb2Hash32(name2);
-		static constexpr std::uint32_t constHash3 = ez::bjb2Hash32(name3);
+		static constexpr std::uint32_t constHash0 = ez::prng::djb2_32(name0);
+		static constexpr std::uint32_t constHash1 = ez::prng::djb2_32(name1);
+		static constexpr std::uint32_t constHash2 = ez::prng::djb2_32(name2);
+		static constexpr std::uint32_t constHash3 = ez::prng::djb2_32(name3);
 
 		std::uint32_t chash0 = constHash0;
 		std::uint32_t chash1 = constHash1;
 		std::uint32_t chash2 = constHash2;
 		std::uint32_t chash3 = constHash3;
 
-		std::uint32_t hash0 = ez::bjb2Hash32(name0, sizeof(name0)-1);
-		std::uint32_t hash1 = ez::bjb2Hash32(name1, sizeof(name1)-1);
-		std::uint32_t hash2 = ez::bjb2Hash32(name2, sizeof(name2)-1);
-		std::uint32_t hash3 = ez::bjb2Hash32(name3, sizeof(name3)-1);
+		std::uint32_t hash0 = ez::prng::djb2_32(name0, sizeof(name0)-1);
+		std::uint32_t hash1 = ez::prng::djb2_32(name1, sizeof(name1)-1);
+		std::uint32_t hash2 = ez::prng::djb2_32(name2, sizeof(name2)-1);
+		std::uint32_t hash3 = ez::prng::djb2_32(name3, sizeof(name3)-1);
 
 		if (chash0 != hash0) {
 			fmt::print("Incorrect hash value\n");
@@ -55,15 +55,15 @@ int hash_test() {
 			return -1;
 		}
 
-		std::uint32_t hash4 = ez::bjb2Hash32(name4, sizeof(name4) / sizeof(wchar_t) - 1);
-		std::uint32_t hash5 = ez::bjb2Hash32(name5, sizeof(name5) / sizeof(wchar_t) - 1);
-		std::uint32_t hash6 = ez::bjb2Hash32(name6, sizeof(name6) / sizeof(wchar_t) - 1);
+		std::uint32_t hash4 = ez::prng::djb2_32(name4, sizeof(name4) / sizeof(wchar_t) - 1);
+		std::uint32_t hash5 = ez::prng::djb2_32(name5, sizeof(name5) / sizeof(wchar_t) - 1);
+		std::uint32_t hash6 = ez::prng::djb2_32(name6, sizeof(name6) / sizeof(wchar_t) - 1);
 
-		static constexpr std::uint32_t hash7 = ez::bjb2Hash32(name4);
+		static constexpr std::uint32_t hash7 = ez::prng::djb2_32(name4);
 
 		std::wstring name7 = name4;
 
-		std::uint32_t hash8 = ez::bjb2Hash32(name7);
+		std::uint32_t hash8 = ez::prng::djb2_32(name7);
 
 		if (hash4 != hash7) {
 			fmt::print("Incorrect hash value\n");
@@ -74,7 +74,7 @@ int hash_test() {
 			return -1;
 		}
 
-		if (hash4 != ez::bjb2Hash32(std::wstring_view(name4, sizeof(name4) / sizeof(wchar_t) - 1))) {
+		if (hash4 != ez::prng::djb2_32(std::wstring_view(name4, sizeof(name4) / sizeof(wchar_t) - 1))) {
 			fmt::print("Incorrect hash value\n");
 			return -1;
 		}
@@ -83,8 +83,8 @@ int hash_test() {
 		static constexpr std::wstring_view cname4(name4, sizeof(name4) / sizeof(wchar_t) - 1);
 		static constexpr std::string_view cname5(name0, sizeof(name0) - 1);
 
-		static constexpr std::uint32_t constHash4 = ez::bjb2Hash32(cname4);
-		static constexpr std::uint32_t constHash5 = ez::bjb2Hash32(cname5);
+		static constexpr std::uint32_t constHash4 = ez::prng::djb2_32(cname4);
+		static constexpr std::uint32_t constHash5 = ez::prng::djb2_32(cname5);
 
 		std::uint32_t chash4 = constHash4;
 		std::uint32_t chash5 = constHash5;
@@ -101,15 +101,15 @@ int hash_test() {
 	
 	{ // 64bit Hashing
 	// Make sure the constexpr version of hash works:
-		static constexpr std::uint64_t constHash0 = ez::bjb2Hash64(name0);
-		static constexpr std::uint64_t constHash1 = ez::bjb2Hash64(name1);
-		static constexpr std::uint64_t constHash2 = ez::bjb2Hash64(name2);
-		static constexpr std::uint64_t constHash3 = ez::bjb2Hash64(name3);
+		static constexpr std::uint64_t constHash0 = ez::prng::djb2_64(name0);
+		static constexpr std::uint64_t constHash1 = ez::prng::djb2_64(name1);
+		static constexpr std::uint64_t constHash2 = ez::prng::djb2_64(name2);
+		static constexpr std::uint64_t constHash3 = ez::prng::djb2_64(name3);
 
-		std::uint64_t hash0 = ez::bjb2Hash64(name0, sizeof(name0)-1);
-		std::uint64_t hash1 = ez::bjb2Hash64(name1, sizeof(name1)-1);
-		std::uint64_t hash2 = ez::bjb2Hash64(name2, sizeof(name2)-1);
-		std::uint64_t hash3 = ez::bjb2Hash64(name3, sizeof(name3)-1);
+		std::uint64_t hash0 = ez::prng::djb2_64(name0, sizeof(name0)-1);
+		std::uint64_t hash1 = ez::prng::djb2_64(name1, sizeof(name1)-1);
+		std::uint64_t hash2 = ez::prng::djb2_64(name2, sizeof(name2)-1);
+		std::uint64_t hash3 = ez::prng::djb2_64(name3, sizeof(name3)-1);
 		
 		if (constHash0 != hash0) {
 			fmt::print("Incorrect hash value\n");
@@ -132,15 +132,15 @@ int hash_test() {
 		static constexpr wchar_t name5[] = L"Bryan";
 		static constexpr wchar_t name6[] = L"Helen";
 
-		std::uint64_t hash4 = ez::bjb2Hash64(name4, sizeof(name4) / sizeof(wchar_t) - 1);
-		std::uint64_t hash5 = ez::bjb2Hash64(name5, sizeof(name5) / sizeof(wchar_t) - 1);
-		std::uint64_t hash6 = ez::bjb2Hash64(name6, sizeof(name6) / sizeof(wchar_t) - 1);
+		std::uint64_t hash4 = ez::prng::djb2_64(name4, sizeof(name4) / sizeof(wchar_t) - 1);
+		std::uint64_t hash5 = ez::prng::djb2_64(name5, sizeof(name5) / sizeof(wchar_t) - 1);
+		std::uint64_t hash6 = ez::prng::djb2_64(name6, sizeof(name6) / sizeof(wchar_t) - 1);
 
-		static constexpr std::uint64_t hash7 = ez::bjb2Hash64(name4);
+		static constexpr std::uint64_t hash7 = ez::prng::djb2_64(name4);
 
 		std::wstring name7 = name4;
 
-		std::uint64_t hash8 = ez::bjb2Hash64(name7);
+		std::uint64_t hash8 = ez::prng::djb2_64(name7);
 
 		if (hash4 != hash7) {
 			fmt::print("Incorrect hash value\n");
@@ -151,14 +151,14 @@ int hash_test() {
 			return -1;
 		}
 
-		if (hash4 != ez::bjb2Hash64(std::wstring_view(name4, sizeof(name4) / sizeof(wchar_t) - 1))) {
+		if (hash4 != ez::prng::djb2_64(std::wstring_view(name4, sizeof(name4) / sizeof(wchar_t) - 1))) {
 			fmt::print("Incorrect hash value\n");
 			return -1;
 		}
 
 		// Constexpr string_view test
 		static constexpr std::wstring_view cname4(name4, sizeof(name4) / sizeof(wchar_t) - 1);
-		static constexpr std::uint64_t constHash4 = ez::bjb2Hash64(cname4);
+		static constexpr std::uint64_t constHash4 = ez::prng::djb2_64(cname4);
 
 		std::uint64_t chash4 = constHash4;
 
