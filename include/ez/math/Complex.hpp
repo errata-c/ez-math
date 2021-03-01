@@ -124,7 +124,7 @@ namespace glm {
 
 	template<typename T>
 	tcomplex<T> polar(const T& theta, const T& radius = T(1)) noexcept {
-		return tcomplex<T>::polar(radius, theta);
+		return tcomplex<T>{ std::cos(theta) * radius, std::sin(theta) * radius };
 	}
 
 	template<typename T>
