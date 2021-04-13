@@ -1,3 +1,5 @@
+#include <catch.hpp>
+
 #include <limits>
 #include <fmt/printf.h>
 #include <iostream>
@@ -7,27 +9,39 @@
 #include <ez/math/poly.hpp>
 #include <ez/math/constants.hpp>
 #include <ez/math/trig.hpp>
-#include <ez/math/prng.hpp>
 
-int solve_test() {
+TEST_CASE("simple quadratic test") {
 	float a = 1, b = 0, c = -1;
 	float roots[2];
 	int count = ez::poly::solveQuadratic(a, b, c, roots);
 
-	if (count != 2) {
-		fmt::print("Incorrect number of solutions.\n");
-		return -1;
-	}
+	REQUIRE(count == 2);
+	REQUIRE(std::abs(roots[0] + 1) < 1e-5f);
+	REQUIRE(std::abs(roots[1] - 1) < 1e-5f);
+}
 
-	if (std::abs(roots[0] + 1) > 1e-5f) {
-		fmt::print("Incorrect solution value.\n");
-		return -1;
-	}
+TEST_CASE("large value quadratic test") {
+	double
+		a = 5112,
+		b = -5112,
+		c = 1278;
 
-	if (std::abs(roots[1] - 1) > 1e-5f) {
-		fmt::print("Incorrect solution value.\n");
-		return -1;
-	}
+	std::array<double, 2> roots;
+	int count = ez::poly::solveQuadratic(a, b, c, roots.begin());
 
-	return 0;
+	REQUIRE(count == 1);
+	REQUIRE(std::abs(roots[0] - 0.5) < 1e-5f);
+}
+
+TEST_CASE("second large quadratic test") {
+	double
+		a = 0.0,
+		b = 579.6,
+		c = -289.8;
+
+	std::array<double, 2> roots;
+	int count = ez::poly::solveQuadratic(a, b, c, roots.begin());
+
+	REQUIRE(count == 1);
+	REQUIRE(std::abs(roots[0] - 0.5) < 1e-5f);
 }

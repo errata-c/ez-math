@@ -3,10 +3,17 @@
 #include <complex>
 #include <glm/vec2.hpp>
 
+/*
+	The goal of this header is to integrate the std::complex type into glm seamlessly.
+	Specifically using all the conventions that glm::quat uses.
+	This gives the best of both worlds, the standard library's complex type, and the glm ecosystem.
+*/
+
 namespace glm {
 	template<typename T>
 	using tcomplex = std::complex<T>;
 
+	// long double is unsupported. I've never seen any code actually using it anyway.
 	using complex = tcomplex<float>;
 	using dcomplex = tcomplex<double>;
 
