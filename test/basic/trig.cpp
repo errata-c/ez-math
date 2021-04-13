@@ -1,3 +1,5 @@
+#include <catch.hpp>
+
 #include <limits>
 #include <fmt/printf.h>
 #include <iostream>
@@ -7,30 +9,34 @@
 #include <ez/math/poly.hpp>
 #include <ez/math/constants.hpp>
 #include <ez/math/trig.hpp>
-#include <ez/math/prng.hpp>
 
-#include <ez/math/Trig.hpp>
-
-int trig_test() {
-	float angle = 1.f;
+TEST_CASE("angles test") {
+	float angle = ez::half_pi<float>();
 	float comp = ez::trig::complement(angle);
 	float supl = ez::trig::supplement(angle);
+	
+	REQUIRE(std::abs(comp) < 1e-5f);
 
-	fmt::print("Angle == {}, complement == {}, supplement == {}\n", angle, comp, supl);
+	REQUIRE(std::abs(supl - ez::half_pi<float>()) < 1e-5f);
 
 	angle = ez::pi<float>() * 3.5f;
 	float norm = ez::trig::normalizeAngle(angle);
 	float standard = ez::trig::standardPosition(angle);
 
-	if (std::abs(norm + ez::half_pi<float>()) > 1e-5f) {
-		fmt::print("Incorrect normalized angle result\n");
-		return -1;
-	}
+	REQUIRE(std::abs(norm + ez::half_pi<float>()) < 1e-5f);
 
-	if (std::abs(standard - ez::pi<float>() * 1.5f) > 1e-5f) {
-		fmt::print("Incorrect standard position angle\n");
-		return -1;
-	}
+	REQUIRE(std::abs(standard - ez::pi<float>() * 1.5f) < 1e-5f);
+}
 
-	return 0;
+TEST_CASE("Law of cosines") {
+	float a = 8.f;
+	float b = 11.f;
+	float theta = ez::to_radians(37.f);
+
+	float expected = 6.666344591f;
+
+	float c;
+	REQUIRE(ez::trig::cosineRule(a, b, theta, c));
+
+	REQUIRE(std::abs(expected - c) < 1e-5f);
 }
