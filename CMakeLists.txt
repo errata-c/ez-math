@@ -5,7 +5,7 @@ VERSION 0.3.4
 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
-find_package(ez-cmake CONFIG REQUIRED)
+include("cmake/ez-cmake/install-package.cmake")
 
 option(BUILD_TESTS "Build the test executables" ON)
 option(SEPARATE_DIRECTORY "Install the package into its own directory" ON)
@@ -48,7 +48,7 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 )
 
 install(TARGETS ez-math
-	EXPORT ez-math-targets
+	EXPORT "ez-math-export"
 	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/$<CONFIG>"
 	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>"
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>"
@@ -58,9 +58,9 @@ install_package(
 	NAME "ez-math"
 	NAMESPACE "ez::"
 	DESTINATION "${CONFIG_DIR}"
-	EXPORT "ez-math-targets"
+	EXPORT "ez-math-export"
 	VERSION "${EZ_MATH_VERSION}"
 	COMPATIBILITY "SameMajorVersion"
-	PRECONFIG "preconfig.cmake"
+	PRECONFIG "cmake/preconfig.cmake"
 	ARCH_INDEPENDENT
 )
