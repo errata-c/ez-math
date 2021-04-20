@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(EZ_MATH
-VERSION 0.3.4
+VERSION 0.4.0
 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
@@ -9,10 +9,9 @@ include("cmake/ez-cmake/install-package.cmake")
 
 option(BUILD_TESTS "Build the test executables" ON)
 option(SEPARATE_DIRECTORY "Install the package into its own directory" ON)
+set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-math" CACHE STRING "The relative directory to install package config files.")
 
-set(PACK_NAME "ez-math")
-set(CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/${PACK_NAME}" CACHE STRING "The relative directory to install ${PACK_NAME} package config files.")
-set(BUILD_TESTS OFF CACHE BOOL "Build the tests for ${PACK_NAME} library.")
+
 
 find_package(glm CONFIG REQUIRED)
 find_package(ez-meta CONFIG REQUIRED)
