@@ -16,4 +16,4 @@ The headers provided are:
 #include <ez/math/trig.hpp>
 ```
 
-Further documentation is provided by the wiki.
+Further documentation is provided by the [wiki](https://github.com/errata-c/ez-math/wiki).
