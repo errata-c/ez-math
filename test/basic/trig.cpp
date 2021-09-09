@@ -31,7 +31,7 @@ TEST_CASE("angles test") {
 TEST_CASE("Law of cosines") {
 	float a = 8.f;
 	float b = 11.f;
-	float theta = ez::to_radians(37.f);
+	float theta = ez::toRadians(37.f);
 
 	float expected = 6.666344591f;
 

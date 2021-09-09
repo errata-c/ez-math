@@ -9,12 +9,12 @@
 
 namespace ez {
 	template<typename T>
-	constexpr T to_radians(T angle) {
+	constexpr T toRadians(T angle) {
 		constexpr T factor = ez::tau<T>() / T(360);
 		return angle * factor;
 	}
 	template<typename T>
-	constexpr T to_degrees(T angle) {
+	constexpr T toDegrees(T angle) {
 		constexpr T factor = T(360) / ez::tau<float>();
 		return angle * factor;
 	}
