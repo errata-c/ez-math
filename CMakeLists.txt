@@ -1,11 +1,10 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 
 project(EZ_MATH
 	VERSION 0.4.0
 	LANGUAGES C CXX
 )
 
-include(GNUInstallDirs)
 include(FetchContent)
 
 FetchContent_Declare(
@@ -15,8 +14,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ez-cmake)
 
-option(EZ_MATH_BUILD_TESTS "Build the test executables" ON)
-set(EZ_MATH_CONFIG_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ez-math" CACHE STRING "The relative directory to install package config files.")
+option(EZ_MATH_BUILD_TESTS "Build the test executables" OFF)
+set(EZ_MATH_CONFIG_DIR "share/ez-math" CACHE STRING "The relative directory to install package config files.")
 
 
 find_package(glm CONFIG REQUIRED)
@@ -26,7 +25,7 @@ add_library(ez-math INTERFACE)
 
 target_include_directories(ez-math INTERFACE
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+	"$<INSTALL_INTERFACE:include>"
 )
 
 target_compile_features(ez-math INTERFACE cxx_std_17)
@@ -38,9 +37,11 @@ set_target_properties(ez-math PROPERTIES EXPORT_NAME "math")
 # Just for internal compatibility, so that subprojects can use the namespaced version
 add_library(ez::math ALIAS ez-math)
 
+
 if(EZ_MATH_BUILD_TESTS)
 	add_subdirectory("test")
 endif()
+
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 	TYPE INCLUDE
@@ -50,9 +51,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 
 install(TARGETS ez-math
 	EXPORT "ez-math-export"
-	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/$<CONFIG>"
-	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>"
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>"
 )
 
 install_package(
