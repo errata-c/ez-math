@@ -1,8 +1,16 @@
-
 find_package(fmt CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
 
-add_library(test_framework INTERFACE)
-target_link_libraries(test_framework INTERFACE ez::math fmt::fmt-header-only)
 
-add_subdirectory("basic")
-add_subdirectory("color")
+add_executable(ez_math_tests 
+	"main.cpp" 
+	"complex.cpp" 
+	"solve.cpp" 
+	"trig.cpp"
+	"color.cpp"
+)
+target_link_libraries(ez_math_tests PRIVATE 
+	ez::math 
+	fmt::fmt
+	Catch2::Catch2
+)

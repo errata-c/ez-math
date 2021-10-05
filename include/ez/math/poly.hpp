@@ -6,6 +6,9 @@
 #include "constants.hpp"
 #include "complex.hpp"
 
+// sqrt, min, max
+#include <glm/exponential.hpp>
+
 namespace ez::poly {
 
 	template<typename T, typename Iter>
@@ -13,8 +16,12 @@ namespace ez::poly {
 		static_assert(is_real_vec_v<T>, "ez::Polynomial::solveLinear requires floating point types!");
 		static_assert(is_output_iterator_v<Iter>, "ez::Polynomial::solveLinear requires the iterator passed in to be an output iterator.");
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveLinear cannot convert type to iterator value_type!");
-
-		if (std::abs(b) < ez::epsilon<T>()) {
+		
+		// Pull namespace in for name resolution
+		using namespace std;
+		using namespace glm;
+		
+		if (abs(b) < ez::epsilon<T>()) {
 			return 0;
 		}
 		else {
@@ -29,18 +36,21 @@ namespace ez::poly {
 		static_assert(is_output_iterator_v<Iter>, "ez::Polynomial::solveQuadratic requires the iterator passed in to be an output iterator.");
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveQuadratic cannot convert type to iterator value_type!");
 
-		if (std::abs(a) < ez::epsilon<T>()) {
-			if (std::abs(b) < ez::epsilon<T>()) {
+		using namespace std;
+		using namespace glm;
+
+		if (abs(a) < ez::epsilon<T>()) {
+			if (abs(b) < ez::epsilon<T>()) {
 				return 0;
 			}
 			(*output++) = -c / b;
 			return 1;
 		}
-		else if (std::abs(c) < ez::epsilon<T>()) {
+		else if (abs(c) < ez::epsilon<T>()) {
 			T tmp = -b / a;
 
-			(*output++) = std::min(T(0), tmp);
-			(*output++) = std::max(T(0), tmp);
+			(*output++) = min(T(0), tmp);
+			(*output++) = max(T(0), tmp);
 			return 2;
 		}
 
@@ -48,23 +58,23 @@ namespace ez::poly {
 		if (det > ez::epsilon<T>()) {
 			if (b < -ez::epsilon<T>())
 			{
-				det = (-b + std::sqrt(det)) / (T(2) * a);
+				det = (-b + sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
-				(*output++) = std::min(det, tmp);
-				(*output++) = std::max(det, tmp);
+				(*output++) = min(det, tmp);
+				(*output++) = max(det, tmp);
 				return 2;
 			}
 			else if (b > ez::epsilon<T>()) {
-				det = (-b - std::sqrt(det)) / (T(2) * a);
+				det = (-b - sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
-				(*output++) = std::min(det, tmp);
-				(*output++) = std::max(det, tmp);
+				(*output++) = min(det, tmp);
+				(*output++) = max(det, tmp);
 				return 2;
 			}
 			else {
-				det = std::sqrt(-c / a);
+				det = sqrt(-c / a);
 				(*output++) = -det;
 				(*output++) = det;
 				return 2;
@@ -91,11 +101,14 @@ namespace ez::poly {
 			guess1{ -0.4110438076762, -0.911615592325514 },
 			guess2{  0.9950041652780,  0.099833416646828 };
 
-		if (std::abs(a) <= ez::epsilon<T>()) {
+		using namespace std;
+		using namespace glm;
+
+		if (abs(a) <= ez::epsilon<T>()) {
 			return solveQuadratic(b, c, d, output);
 		}
 
-		T upperBound = T(1) + std::max(std::abs(b / a), std::max(std::abs(c / a), std::abs(d / a)));
+		T upperBound = T(1) + max(abs(b / a), max(std::abs(c / a), abs(d / a)));
 
 		std::array<glm::tcomplex<T>, 4> coeff{
 			glm::tcomplex<T>{a, T(0)},
@@ -143,7 +156,7 @@ namespace ez::poly {
 
 		int found = 0;
 		for (int i = 0; i < 3; ++i) {
-			if (std::abs(z[i].imag()) < ez::epsilon<T>()) {
+			if (abs(z[i].imag()) < ez::epsilon<T>()) {
 				*output++ = z[i].real();
 				++found;
 			}

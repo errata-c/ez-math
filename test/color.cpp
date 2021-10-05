@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <fmt/core.h>
@@ -12,6 +11,7 @@ TEST_CASE("u8 color") {
 
 	using Color = ez::ColorU;
 
+	// Default color, opaque black
 	REQUIRE(Color{} == Color{ 0, 0, 0, 255 });
 
 	// ARGB format for u32
