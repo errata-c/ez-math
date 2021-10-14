@@ -6,9 +6,6 @@
 #include "constants.hpp"
 #include "complex.hpp"
 
-// sqrt, min, max
-#include <glm/exponential.hpp>
-
 namespace ez::poly {
 
 	template<typename T, typename Iter>
@@ -18,10 +15,8 @@ namespace ez::poly {
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveLinear cannot convert type to iterator value_type!");
 		
 		// Pull namespace in for name resolution
-		using namespace std;
-		using namespace glm;
 		
-		if (abs(b) < ez::epsilon<T>()) {
+		if (std::abs(b) < ez::epsilon<T>()) {
 			return 0;
 		}
 		else {
@@ -36,21 +31,18 @@ namespace ez::poly {
 		static_assert(is_output_iterator_v<Iter>, "ez::Polynomial::solveQuadratic requires the iterator passed in to be an output iterator.");
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveQuadratic cannot convert type to iterator value_type!");
 
-		using namespace std;
-		using namespace glm;
-
-		if (abs(a) < ez::epsilon<T>()) {
-			if (abs(b) < ez::epsilon<T>()) {
+		if (std::abs(a) < ez::epsilon<T>()) {
+			if (std::abs(b) < ez::epsilon<T>()) {
 				return 0;
 			}
 			(*output++) = -c / b;
 			return 1;
 		}
-		else if (abs(c) < ez::epsilon<T>()) {
+		else if (std::abs(c) < ez::epsilon<T>()) {
 			T tmp = -b / a;
 
-			(*output++) = min(T(0), tmp);
-			(*output++) = max(T(0), tmp);
+			(*output++) = std::min(T(0), tmp);
+			(*output++) = std::max(T(0), tmp);
 			return 2;
 		}
 
@@ -58,19 +50,19 @@ namespace ez::poly {
 		if (det > ez::epsilon<T>()) {
 			if (b < -ez::epsilon<T>())
 			{
-				det = (-b + sqrt(det)) / (T(2) * a);
+				det = (-b + std::sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
-				(*output++) = min(det, tmp);
-				(*output++) = max(det, tmp);
+				(*output++) = std::min(det, tmp);
+				(*output++) = std::max(det, tmp);
 				return 2;
 			}
 			else if (b > ez::epsilon<T>()) {
-				det = (-b - sqrt(det)) / (T(2) * a);
+				det = (-b - std::sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
-				(*output++) = min(det, tmp);
-				(*output++) = max(det, tmp);
+				(*output++) = std::min(det, tmp);
+				(*output++) = std::max(det, tmp);
 				return 2;
 			}
 			else {
@@ -104,11 +96,11 @@ namespace ez::poly {
 		using namespace std;
 		using namespace glm;
 
-		if (abs(a) <= ez::epsilon<T>()) {
+		if (std::abs(a) <= ez::epsilon<T>()) {
 			return solveQuadratic(b, c, d, output);
 		}
 
-		T upperBound = T(1) + max(abs(b / a), max(std::abs(c / a), abs(d / a)));
+		T upperBound = T(1) + max(std::abs(b / a), max(std::abs(c / a), std::abs(d / a)));
 
 		std::array<glm::tcomplex<T>, 4> coeff{
 			glm::tcomplex<T>{a, T(0)},

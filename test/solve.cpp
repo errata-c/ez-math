@@ -10,6 +10,7 @@
 #include <ez/math/constants.hpp>
 #include <ez/math/trig.hpp>
 
+
 TEST_CASE("simple quadratic test") {
 	float a = 1, b = 0, c = -1;
 	float roots[2];
