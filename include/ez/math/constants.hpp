@@ -40,7 +40,7 @@ namespace ez {
 	// Returns the value of e (euler's constant), cast to the template type.
 	template<typename T = double>
 	constexpr T e() {
-		return glm::e();
+		return glm::e<T>();
 	}
 
 	// Returns the value of natural log of 2, cast to the template type.
