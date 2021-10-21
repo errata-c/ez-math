@@ -9,13 +9,16 @@
 
 namespace ez {
 	template<typename T>
-	constexpr T toRadians(T angle) {
+	constexpr T radians(T angle) noexcept {
+		static_assert(std::is_floating_point_v<T>, "ez::radians only accepts floating point types as input!");
 		constexpr T factor = ez::tau<T>() / T(360);
 		return angle * factor;
 	}
+
 	template<typename T>
-	constexpr T toDegrees(T angle) {
-		constexpr T factor = T(360) / ez::tau<float>();
+	constexpr T degrees(T angle) noexcept {
+		static_assert(std::is_floating_point_v<T>, "ez::degrees only accepts floating point types as input!");
+		constexpr T factor = T(360) / ez::tau<T>();
 		return angle * factor;
 	}
 }
@@ -35,19 +38,19 @@ namespace ez::trig {
 
 	template<typename T>
 	T supplement(const T& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::supplement requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::supplement only accepts floating point types as input!");
 		return intern::supplement(value);
 	};
 
 	template<typename T, ::glm::length_t L>
 	glm::vec<L, T> supplement(const glm::vec<L, T>& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::supplement requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::supplement only accepts floating point types as input!");
 		return intern::supplement(value);
 	};
 
 	template<typename T>
 	bool cosineRule(T sideA, T sideB, T theta, T& sideC) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::cosineRule requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::cosineRule only accepts floating point types as input!");
 
 		T A2 = sideA * sideA;
 		T B2 = sideB * sideB;
@@ -65,19 +68,19 @@ namespace ez::trig {
 
 	template<typename T>
 	T complement(const T& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::complement requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::complement only accepts floating point types as input!");
 		return intern::complement(value);
 	};
 
 	template<typename T, glm::length_t L>
 	glm::vec<L, T> complement(const glm::vec<L, T>& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::complement requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::complement only accepts floating point types as input!");
 		return intern::complement(value);
 	};
 
 	template<typename T, glm::length_t L>
 	glm::vec<3, T> toBarycentric(const glm::vec<L, T>& p, const glm::vec<L, T>& a, const glm::vec<L, T>& b, const glm::vec<L, T>& c) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::toBarycentric requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::toBarycentric only accepts floating point types as input!");
 		using vec_t = glm::vec<L, T>;
 
 		vec_t v0 = b - a, v1 = c - a, v2 = p - a;
@@ -97,7 +100,7 @@ namespace ez::trig {
 	};
 	template<typename T, glm::length_t L>
 	glm::vec<L, T> fromBarycentric(const glm::vec<3, T>& coords, const glm::vec<L, T>& a, const glm::vec<L, T>& b, const glm::vec<L, T>& c) {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::fromBarycentric requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::fromBarycentric only accepts floating point types as input!");
 		
 		return a * coords.x + b * coords.y + c * coords.z;
 	}
@@ -105,7 +108,7 @@ namespace ez::trig {
 	// Puts the angle into standard position, ie in the range [0, 2 * pi]
 	template<typename T>
 	T standardPosition(const T& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::standardPosition requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::standardPosition only accepts floating point types as input!");
 
 		T angle = std::fmod(value, ez::tau<T>());
 		if (angle < ez::zero<T>()) {
@@ -117,7 +120,7 @@ namespace ez::trig {
 	// Puts the angle into standard position, ie in the range [0, 2 * pi]
 	template<typename T, glm::length_t L>
 	glm::vec<L, T> standardPosition(const glm::vec<L, T>& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::standardPosition requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::standardPosition only accepts floating point types as input!");
 
 		glm::vec<L, T> res;
 		for (int i = 0; i < L; ++i) {
@@ -129,7 +132,7 @@ namespace ez::trig {
 	// Normalizes the angle to the range [-pi/2, pi/2] 
 	template<typename T>
 	T normalizeAngle(const T& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::normalizeAngle requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::normalizeAngle only accepts floating point types as input!");
 
 		T angle = std::fmod(value + ez::pi<T>(), ez::tau<T>());
 		if (angle < ez::zero<T>()) {
@@ -141,7 +144,7 @@ namespace ez::trig {
 	// Normalizes the angle to the range [-pi/2, pi/2]
 	template<typename T, glm::length_t L>
 	glm::vec<L, T> normalizeAngle(const glm::vec<L, T>& value) noexcept {
-		static_assert(std::is_floating_point_v<T>, "ez::trig::normalizeAngle requires floating point types!");
+		static_assert(std::is_floating_point_v<T>, "ez::trig::normalizeAngle only accepts floating point types as input!");
 
 		glm::vec<L, T> res;
 		for (int i = 0; i < L; ++i) {
