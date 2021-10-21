@@ -1,6 +1,6 @@
 #pragma once
 #include <ez/meta.hpp>
-#include "Constants.hpp"
+#include <ez/math/constants.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
