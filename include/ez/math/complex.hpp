@@ -101,33 +101,11 @@ namespace glm {
 		return std::arg(value);
 	}
 
-	template<typename T>
-	tcomplex<T> exp(const tcomplex<T>& value) noexcept {
-		return std::exp(value);
-	}
-
-	template<typename T>
-	tcomplex<T> sqrt(const tcomplex<T> & value) noexcept {
-		return std::sqrt(value);
-	}
-
-	template<typename T>
-	tcomplex<T> log(const tcomplex<T>& value) noexcept {
-		return std::log(value);
-	}
-
-	template<typename T>
-	tcomplex<T> pow(const tcomplex<T>& value, const T& exponent) noexcept {
-		return std::pow(value, exponent);
-	}
-	template<typename T>
-	tcomplex<T> pow(const tcomplex<T>& value, const tcomplex<T>& exponent) noexcept {
-		return std::pow(value, exponent);
-	}
-	template<typename T>
-	tcomplex<T> pow(const T& value, const tcomplex<T>& exponent) noexcept {
-		return std::pow(value, exponent);
-	}
+	// Certain headers in glm bring these into glm namespace, but I put these here anyways just in case
+	using std::exp;
+	using std::pow;
+	using std::sqrt;
+	using std::log;
 
 	template<typename T>
 	tcomplex<T> polar(const T& theta, const T& radius = T(1)) noexcept {

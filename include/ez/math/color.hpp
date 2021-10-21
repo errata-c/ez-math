@@ -151,19 +151,19 @@ namespace ez {
 		}
 
 		// hue is in degrees [0, 360], s and v are normalized to range [0, 1]
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static Color fromHSV(T h, T s, T v) noexcept {
 			return fromHSV(glm::tvec3<T>{h, s, v});
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static Color fromHSVA(T h, T s, T v, T a) noexcept {
 			return fromHSVA(glm::tvec4<T>{h, s, v, a});
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static Color fromHSV(const glm::tvec3<T>& value) noexcept {
 			return Color{ glm::rgbColor(value) };
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static Color fromHSVA(const glm::tvec4<T> & value) noexcept {
 			return Color{
 				glm::rgbColor(glm::tvec3<T>{ value.data }),
@@ -171,11 +171,11 @@ namespace ez {
 			};
 		}
 
-		template<typename = std::enable_if < std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec3<T> toHSV(const Color& value) noexcept {
 			return glm::hsvColor(glm::tvec3<T>{value.data});
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec4<T> toHSVA(const Color& value) noexcept {
 			return glm::tvec4<T>{
 				glm::hsvColor(glm::tvec3<T>{value.data}),
@@ -183,11 +183,11 @@ namespace ez {
 			};
 		}
 
-		template<typename = std::enable_if < std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec3<T> toSRGB(const Color& value) noexcept {
 			return glm::convertLinearToSRGB(glm::tvec3<T>{value.data});
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec4<T> toSRGBA(const Color& value) noexcept {
 			return glm::tvec4<T>{
 				glm::convertLinearToSRGB(glm::tvec3<T>{value.data}),
@@ -195,11 +195,11 @@ namespace ez {
 			};
 		}
 
-		template<typename = std::enable_if < std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec3<T> toSRGB(const Color& value, const T& gamma) noexcept {
 			return glm::convertLinearToSRGB(glm::tvec3<T>{value.data}, gamma);
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec4<T> toSRGBA(const Color& value, const T& gamma) noexcept {
 			return glm::tvec4<T>{
 				glm::convertLinearToSRGB(glm::tvec3<T>{value.data}, gamma),
@@ -207,13 +207,13 @@ namespace ez {
 			};
 		}
 
-		template<typename = std::enable_if < std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static Color fromSRGB(const glm::tvec3<T>& value) noexcept {
 			return Color{
 				glm::convertSRGBToLinear(value)
 			};
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec4<T> fromSRGBA(const glm::tvec4<T>& value) noexcept {
 			return Color{
 				glm::convertSRGBToLinear(glm::tvec3<T>{value}),
@@ -221,13 +221,13 @@ namespace ez {
 			};
 		}
 
-		template<typename = std::enable_if < std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if < std::is_floating_point_v<U>>>
 		static Color fromSRGB(const glm::tvec3<T>& value, const T& gamma) noexcept {
 			return Color{
 				glm::convertSRGBToLinear(value, gamma)
 			};
 		}
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		static glm::tvec4<T> fromSRGBA(const glm::tvec4<T>& value, const T& gamma) noexcept {
 			return Color{
 				glm::convertSRGBToLinear(glm::tvec3<T>{value}, gamma),
@@ -291,7 +291,7 @@ namespace ez {
 			a = std::max(0, std::min(a, maxval));
 		}
 
-		template<typename = std::enable_if_t<std::is_floating_point_v<T>>>
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>>>
 		T luminosity() const noexcept {
 			return glm::luminosity(glm::tvec3<T>{ data });
 		}

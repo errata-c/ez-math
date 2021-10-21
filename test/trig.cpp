@@ -6,7 +6,6 @@
 #include <ctime>
 
 #include <ez/math/complex.hpp>
-#include <ez/math/poly.hpp>
 #include <ez/math/constants.hpp>
 #include <ez/math/trig.hpp>
 

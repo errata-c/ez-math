@@ -21,7 +21,7 @@ namespace ez {
 		constexpr T factor = T(360) / ez::tau<T>();
 		return angle * factor;
 	}
-}
+};
 
 namespace ez::trig {
 	namespace intern {
