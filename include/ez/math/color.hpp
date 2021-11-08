@@ -12,10 +12,27 @@
 #include <glm/gtx/color_space.hpp>
 
 namespace ez {
+	namespace intern {
+		template<typename T, bool = std::is_floating_point_v<T>>
+		struct ColorMax {
+			static constexpr T value = T(1);
+		};
+		template<typename T>
+		struct ColorMax<T, false> {
+			static constexpr T value = ~T(0);
+		};
+	}
+
 	template<typename T>
 	struct Color {
 	private:
-		static constexpr T maxval = std::is_floating_point_v<T> ? T(1) : T(255);
+		static_assert(
+			std::is_integral_v<T> ||
+			std::is_floating_point_v<T>,
+			"Unsupported value type for ez::Color!"
+			);
+
+		static constexpr T maxval = intern::ColorMax<T>::value;
 
 		template<typename From, typename To>
 		static To convert(From val) noexcept {
@@ -45,13 +62,7 @@ namespace ez {
 		}
 		
 	public:
-		static_assert(
-			std::is_same_v<T, uint8_t> ||
-			std::is_same_v<T, float> ||
-			std::is_same_v<T, double> ||
-			std::is_same_v<T, long double>,
-			"Unsupported value type for ez::Color!"
-		);
+		
 
 		// ARGB
 		static Color fromU32(uint32_t value) noexcept {

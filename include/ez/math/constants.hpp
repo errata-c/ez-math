@@ -87,7 +87,7 @@ namespace ez {
 
 		template<>
 		struct eps<4> { // 32 bits
-			static constexpr float value = 1E-4f;
+			static constexpr float value = 1E-5;
 		};
 		template<>
 		struct eps<8> { // 64 bits

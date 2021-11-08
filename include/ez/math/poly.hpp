@@ -7,6 +7,60 @@
 #include "complex.hpp"
 
 namespace ez::poly {
+	// Linear polynomial
+	template<typename T, typename U>
+	U evaluate(T a, T b, U t) {
+		return a * t + b;
+	};
+
+	// Quadratic polynomial
+	template<typename T, typename U>
+	U evaluate(T a, T b, T c, U t) {
+		return a * t * t + b * t + c;
+	};
+
+	// Cubic polynomial
+	template<typename T, typename U>
+	U evaluate(T a, T b, T c, T d, U t) {
+		U tt = t * t;
+		return a * tt * t + b * tt + c * t + d;
+	};
+
+	// Linear polynomial
+	template<typename T, typename U>
+	U derivativeAt(T a, U t) {
+		return a;
+	}
+
+	// Quadratic polynomial
+	template<typename T, typename U>
+	U derivativeAt(T a, T b, U t) {
+		return T(2) * a * t + b;
+	}
+
+	// Cubic polynomial
+	template<typename T, typename U>
+	U derivativeAt(T a, T b, T c, U t) {
+		return T(3) * a * t * t + T(2) * b * t + c;
+	}
+
+
+	template<typename T, typename U>
+	T evalIntegral(T a, T b, U t) {
+		return a * t * t / T(2) + b * t;
+	}
+
+	template<typename T, typename U>
+	T evalIntegral(T a, T b, T c, U t) {
+		return a * t * t * t / T(3) + b * t * t / T(2) + c * t;
+	}
+
+	template<typename T, typename U>
+	T evalIntegral(T a, T b, T c, T d, U t) {
+		U tt = t * t;
+
+		return a * tt * tt / T(4) + b * tt * t / T(3) + c * tt / T(2) + d * t;
+	}
 
 	template<typename T, typename Iter>
 	int solveLinear(T a, T b, Iter output) {
@@ -87,121 +141,77 @@ namespace ez::poly {
 		static_assert(is_output_iterator_v<Iter>, "ez::Polynomial::solveQuadratic requires the iterator passed in to be an output iterator.");
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveQuadratic cannot convert type to iterator value_type!");
 		
-		// Equidistant points on unit circle
+		// Roughly equidistant points on unit circle
+		// Slightly non-symmetrical to prevent convergence issues
 		static constexpr glm::tcomplex<T>
 			guess0{ -0.5839603576017,  0.811782175678686 },
 			guess1{ -0.4110438076762, -0.911615592325514 },
 			guess2{  0.9950041652780,  0.099833416646828 };
 
-		using namespace std;
-		using namespace glm;
-
-		if (std::abs(a) <= ez::epsilon<T>()) {
+		if (std::abs(a) < ez::epsilon<T>()) {
 			return solveQuadratic(b, c, d, output);
 		}
 
-		T upperBound = T(1) + max(std::abs(b / a), max(std::abs(c / a), std::abs(d / a)));
+		// The bounds of the polynomials roots
+		T upper = T(1) + (T(1) / (std::abs(a)) * std::max(std::abs(d), std::max(std::abs(c), std::abs(b))));
+		T lower = std::abs(d) / (std::abs(d) + std::max(std::abs(c), std::max(std::abs(b), std::abs(a))));
+		T mid = (upper + lower) * T(0.5);
 
-		std::array<glm::tcomplex<T>, 4> coeff{
-			glm::tcomplex<T>{a, T(0)},
-			glm::tcomplex<T>{b, T(0)},
-			glm::tcomplex<T>{c, T(0)},
-			glm::tcomplex<T>{d, T(0)}
-		};
-		std::array<glm::tcomplex<T>, 3> deriv{
-			T(3) * coeff[0], 
-			T(2) * coeff[1], 
-			coeff[2]
+		// The roots we are iterating on
+		std::array<glm::tcomplex<T>, 3> roots{
+			mid * guess0,
+			mid * guess1,
+			mid * guess2
 		};
 
-		std::array<glm::tcomplex<T>, 3> z;
-		z[0] = upperBound * guess0;
-		z[1] = upperBound * guess1;
-		z[2] = upperBound * guess2;
+		std::array<T, 3> deriv{
+			T(3) * a, 
+			T(2) * b, 
+			c
+		};
 
-		std::array<glm::tcomplex<T>, 3> w = z;
+		// number of iterations to perform
+		int icount = 48;
+		constexpr T eps = ez::epsilon<T>() * T(10);
 
-		int icount = 32;
 		for (int i = 0; i < icount; ++i) {
+			int valid = 0;
 			for (int k = 0; k < 3; ++k) {
+				glm::tcomplex<T> root = roots[k];
 
-				glm::tcomplex<T> factor{ 
-					eval(coeff[0], coeff[1], coeff[2], coeff[3], z[k]) / 
-					eval(deriv[0], deriv[1], deriv[2], z[k]) 
-				};
-
+				glm::tcomplex<T> factor =  
+					poly::evaluate(a, b, c, d, root) /
+					poly::evaluate(deriv[0], deriv[1], deriv[2], root);
+				
 				glm::tcomplex<T> repulsion{ T(0), T(0) };
-
 				for (int j = 0; j < 3; ++j) {
-					if (j == k) {
-						continue;
+					if (j != k) {
+						repulsion += T(1) / (root - roots[j]);
 					}
-
-					repulsion += T(1) / (z[k] - z[j]);
 				}
 
-				w[k] = factor / (glm::tcomplex<T>{T(1), T(0)} - factor * repulsion);
+				glm::tcomplex<T> offset = factor / (T(1) - factor * repulsion);
+				roots[k] -= offset;
+
+				if (std::abs(offset.real()) < eps && std::abs(offset.imag()) < eps) {
+					++valid;
+				}
 			}
 
-			z = w;
+			if (valid == 3) {
+				break;
+			}
 		}
 
 		int found = 0;
 		for (int i = 0; i < 3; ++i) {
-			if (abs(z[i].imag()) < ez::epsilon<T>()) {
-				*output++ = z[i].real();
+			if (std::abs(roots[i].imag()) < eps) {
+				*output++ = roots[i].real();
 				++found;
 			}
 		}
 		return found;
 	}
 
-	template<typename T>
-	T eval(T a, T b, T t) {
-		return a * t + b;
-	};
-
-	template<typename T>
-	T eval(T a, T b, T c, T t) {
-		return a * t * t + b * t + c;
-	};
-
-	template<typename T>
-	T eval(T a, T b, T c, T d, T t) {
-		T tt = t * t;
-		return a * tt * t + b * tt + c * t + d;
-	};
-
-	template<typename T>
-	T evalDerivative(T a, T t) {
-		return a;
-	}
-
-	template<typename T>
-	T evalDerivative(T a, T b, T t) {
-		return T(2) * a * t + b;
-	}
-
-	template<typename T>
-	T evalDerivative(T a, T b, T c, T t) {
-		return T(3) * a * t * t + T(2) * b * t + c;
-	}
-
-
-	template<typename T>
-	T evalIntegral(T a, T b, T t) {
-		return a * t * t / T(2) + b * t;
-	}
-
-	template<typename T>
-	T evalIntegral(T a, T b, T c, T t) {
-		return a * t * t * t / T(3) + b * t * t / T(2) + c * t;
-	}
-
-	template<typename T>
-	T evalIntegral(T a, T b, T c, T d, T t) {
-		T tt = t * t;
-
-		return a * tt * tt / T(4) + b * tt * t / T(3) + c * tt / T(2) + d * t;
-	}
+	
 };
