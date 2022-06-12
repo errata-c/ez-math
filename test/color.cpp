@@ -1,10 +1,12 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <fmt/format.h>
 
 #include <ez/math/color.hpp>
+
+using Approx = Catch::Approx;
 
 TEST_CASE("u8 color") {
 	glm::tvec4<uint8_t> testvec;

@@ -22,8 +22,11 @@ namespace ez::poly {
 	// Cubic polynomial
 	template<typename T, typename U>
 	U evaluate(T a, T b, T c, T d, U t) {
-		U tt = t * t;
-		return a * tt * t + b * tt + c * t + d;
+		// Does caching this value make the precision worse? It seems to be doing something problematic
+		//U tt = t * t;
+		//return a * tt * t + b * tt + c * t + d;
+
+		return a * t * t * t + b * t * t + c * t + d;
 	};
 
 	// Linear polynomial
@@ -85,14 +88,16 @@ namespace ez::poly {
 		static_assert(is_output_iterator_v<Iter>, "ez::Polynomial::solveQuadratic requires the iterator passed in to be an output iterator.");
 		static_assert(is_iterator_writable_v<Iter, T>, "ez::Polynomial::solveQuadratic cannot convert type to iterator value_type!");
 
-		if (std::abs(a) < ez::epsilon<T>()) {
-			if (std::abs(b) < ez::epsilon<T>()) {
+		constexpr T eps = ez::epsilon<T>() * T(10);
+
+		if (std::abs(a) < eps) {
+			if (std::abs(b) < eps) {
 				return 0;
 			}
 			(*output++) = -c / b;
 			return 1;
 		}
-		else if (std::abs(c) < ez::epsilon<T>()) {
+		else if (std::abs(c) < eps) {
 			T tmp = -b / a;
 
 			(*output++) = std::min(T(0), tmp);
@@ -101,9 +106,8 @@ namespace ez::poly {
 		}
 
 		T det = b * b - T(4) * a * c;
-		if (det > ez::epsilon<T>()) {
-			if (b < -ez::epsilon<T>())
-			{
+		if (det > eps) {
+			if (b < -eps) {
 				det = (-b + std::sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
@@ -111,7 +115,7 @@ namespace ez::poly {
 				(*output++) = std::max(det, tmp);
 				return 2;
 			}
-			else if (b > ez::epsilon<T>()) {
+			else if (b > eps) {
 				det = (-b - std::sqrt(det)) / (T(2) * a);
 				T tmp = c / (a * det);
 
@@ -126,13 +130,78 @@ namespace ez::poly {
 				return 2;
 			}
 		}
-		else if(det > -ez::epsilon<T>()) {
-			(*output++) = -b / (T(2) * a);
+		else if(det > -eps) {
+			*output++ = -b / (T(2) * a);
 			return 1;
 		}
 		return 0;
 	};
 
+	template<typename T, typename output_iter>
+	int solveCubic(T a, T b, T c, T d, output_iter output) {
+		// Use newtons method, with ruffini's rule
+		// Solve one root, then pass the rest off to solveQuadratic
+		// If the rate of convergence is not ideal, accelerate the iteration
+
+		constexpr T eps = ez::epsilon<T>() * T(10);
+
+		if (std::abs(a) < eps) {
+			return solveQuadratic(b, c, d, output);
+		}
+
+		T root{0};
+		T accel{2.5};
+		T d0 = a * T(3);
+		T d1 = b * T(2);
+		T d2 = c;
+		{
+			T dd0 = a * T(6);
+			T dd1 = b * T(2);
+			if (solveLinear(dd0, dd1, &root)) {
+				root += T(1);
+			}
+		}
+
+		int numIters;
+		if constexpr (sizeof(T) == 4) {
+			numIters = 24;
+		}
+		else {
+			numIters = 64;
+		}
+
+		// Rate the acceleration is interpolated to constant 1
+		constexpr T interpRate = T(0.7);
+
+		int i = 0;
+		for (; i < numIters; ++i) {
+			T fx = poly::evaluate(a, b, c, d, root);
+			if (std::abs(fx) < eps) {
+				break;
+			}
+
+			T delta = accel * fx / poly::evaluate(d0, d1, d2, root);
+			accel = accel * (T(1) - interpRate) + interpRate;
+
+			root = root - delta;
+		}
+		if (i == numIters) {
+			// Failed to converge to the required precision, we cannot rely on the next section to be accurate.
+			return 0;
+		}
+
+		// Factor out the found root, solve quadratic
+		T qa = a;
+		T qb = qa * root + b;
+		T qc = qb * root + c;
+
+		// Cubic should always have one root
+		*output++ = root;
+		return solveQuadratic(qa, qb, qc, output) + 1;
+	}
+
+	/* This method works very well for polynomials with different roots, but fails miserably when there are
+	* multiple of the same root
 	template<typename T, typename  Iter>
 	int solveCubic(T a, T b, T c, T d, Iter output) {
 		/// Aberth method
@@ -171,7 +240,7 @@ namespace ez::poly {
 		};
 
 		// number of iterations to perform
-		int icount = 48;
+		int icount = 128;
 		constexpr T eps = ez::epsilon<T>() * T(10);
 
 		for (int i = 0; i < icount; ++i) {
@@ -212,6 +281,6 @@ namespace ez::poly {
 		}
 		return found;
 	}
-
+	*/
 	
 };

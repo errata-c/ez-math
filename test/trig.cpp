@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <limits>
 #include <fmt/printf.h>
@@ -8,6 +8,8 @@
 #include <ez/math/complex.hpp>
 #include <ez/math/constants.hpp>
 #include <ez/math/trig.hpp>
+
+using Approx = Catch::Approx;
 
 TEST_CASE("angles test") {
 	float angle = ez::half_pi<float>();

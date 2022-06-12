@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <limits>
 #include <fmt/core.h>
@@ -9,6 +9,8 @@
 //#include <ez/math/poly.hpp>
 //#include <ez/math/constants.hpp>
 //#include <ez/math/trig.hpp>
+
+using Approx = Catch::Approx;
 
 // Test the constexpr capabilities of the complex class.
 static constexpr glm::dcomplex cpx0{ 1, 0 };

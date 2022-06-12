@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <limits>
 #include <fmt/core.h>
@@ -8,6 +8,74 @@
 #include <ez/math/complex.hpp>
 #include <ez/math/poly.hpp>
 #include <ez/math/constants.hpp>
+
+using Approx = Catch::Approx;
+
+template<typename T, typename output_iter>
+void cubicFromRoots(T r0, T r1, T r2, output_iter output) {
+	T a = T(1);
+	T b = -(r0 + r1 + r2);
+	T c = r0*r1 + r0*r2 + r1*r2;
+	T d = -r0*r1*r2;
+
+	// It seems that even with some rounds of gradient descent,
+	// Some polynomials just cannot be built with the desired precision.
+	// For instance, the polynomial with roots -4, 0, 0 ends up as 
+	// -4, -0.000000091900, -0.000000091900
+	// About 7-8 decimal places when using double precision
+
+	int iters;
+	T eps;
+	if constexpr (sizeof(T) == 4) {
+		eps = T(1E-3);
+		iters = 12;
+	}
+	else {
+		eps = T(1E-5);
+		iters = 32;
+	}
+
+	T derror;
+	T da(0), db(0), dc(0), dd(0);
+	for (int i = 0; i < 64; ++i) {
+		derror = -ez::poly::evaluate(a, b, c, d, r0);
+		da += derror * r0 * r0 * r0;
+		db += derror * r0 * r0;
+		dc += derror * r0;
+		dd += derror;
+
+		derror = -ez::poly::evaluate(a, b, c, d, r1);
+		da += derror * r0 * r0 * r0;
+		db += derror * r0 * r0;
+		dc += derror * r0;
+		dd += derror;
+
+		derror = -ez::poly::evaluate(a, b, c, d, r2);
+		da += derror * r0 * r0 * r0;
+		db += derror * r0 * r0;
+		dc += derror * r0;
+		dd += derror;
+
+		a -= da * eps;
+		b -= db * eps;
+		c -= dc * eps;
+		d -= dd * eps;
+		eps *= T(0.5);
+	}
+
+	*output++ = a;
+	*output++ = b;
+	*output++ = c;
+	*output++ = d;
+}
+
+template<typename T>
+void printRoots(const T * roots, int count) {
+	for (int i = 0; i < count; ++i) {
+		fmt::print("roots[{}] == {:.12f}\n", i, roots[i]);
+	}
+}
+
 
 bool approxEq(double a, double b) {
 	constexpr double eps = 1E-12;
@@ -69,44 +137,63 @@ TEST_CASE("second large quadratic test") {
 	REQUIRE(approxEq(roots[0], 0.5));
 }
 
-
-
 TEST_CASE("Cubic test 1") {
-	double
-		a = 0.6, 
-		b = 2.4,
-		c = 0.0,
-		d = 0.0;
+	double co[4];
+	cubicFromRoots(-4.0, 0.0, 0.0, &co[0]);
 
 	std::array<double, 3> roots;
-	int count = ez::poly::solveCubic(a, b, c, d, roots.begin());
-
+	int count = ez::poly::solveCubic(co[0], co[1], co[2], co[3], roots.begin());
 	sort(roots, count);
 
-	REQUIRE(count == 3);
+	int firstCount = count;
+	std::array<double, 3> firstRoots = roots;
 
-	REQUIRE(approxEq(roots[0], -4.0));
-	REQUIRE(approxEq(roots[1], 0.0));
-	REQUIRE(approxEq(roots[2], 0.0));
+	printRoots(roots.data(), count);
+
+	// Check the precision
+	for (int i = 0; i < count; ++i) {
+		REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[i])) < 1E-12);
+	}
+
+	for (double & val: co) {
+		val *= 5.0;
+	}
+
+	count = ez::poly::solveCubic(co[0], co[1], co[2], co[3], roots.begin());
+	sort(roots, count);
+
+	REQUIRE(firstCount == count);
+	for (int i = 0; i < count; ++i) {
+		REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[i])) < 1E-12);
+	}
 }
 
 TEST_CASE("Cubic test 2") {
-	double
-		a = -3.0,
-		b = +2.4,
-		c = +15.0,
-		d = +0.2;
-
-	using T = double;
+	double co[4];
+	cubicFromRoots(-1.863675860276, -0.01336237902, +2.677038239296, &co[0]);
 
 	std::array<double, 3> roots;
-	int count = ez::poly::solveCubic(a, b, c, d, roots.begin());
+	int count = ez::poly::solveCubic(co[0], co[1], co[2], co[3], roots.begin());
 
 	sort(roots, count);
 
 	REQUIRE(count == 3);
 
-	REQUIRE(approxEq(roots[0], -1.863675860276));
-	REQUIRE(approxEq(roots[1], -0.01336237902));
-	REQUIRE(approxEq(roots[2], +2.677038239296));
+	REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[0])) < 1E-12);
+	REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[1])) < 1E-12);
+	REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[2])) < 1E-12);
+}
+
+TEST_CASE("Cubic test 3") {
+	double co[4];
+	cubicFromRoots(1.0, 1.0, 1.0, &co[0]);
+
+	std::array<double, 3> roots;
+	int count = ez::poly::solveCubic(co[0], co[1], co[2], co[3], roots.begin());
+
+	sort(roots, count);
+
+	REQUIRE(count == 1);
+
+	REQUIRE(std::abs(ez::poly::evaluate(co[0], co[1], co[2], co[3], roots[0])) < 1E-12);
 }
