@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(EZ_MATH
 	VERSION 0.4.0
@@ -6,6 +6,7 @@ project(EZ_MATH
 )
 
 include(FetchContent)
+include(GNUInstallDirs)
 
 FetchContent_Declare(
 	ez-cmake
@@ -14,7 +15,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ez-cmake)
 
-option(EZ_MATH_BUILD_TESTS "Build the test executables" OFF)
 set(EZ_MATH_CONFIG_DIR "share/ez-math" CACHE STRING "The relative directory to install package config files.")
 
 
@@ -37,29 +37,30 @@ set_target_properties(ez-math PROPERTIES EXPORT_NAME "math")
 # Just for internal compatibility, so that subprojects can use the namespaced version
 add_library(ez::math ALIAS ez-math)
 
+if(PROJECT_IS_TOP_LEVEL)
+	include(CTest)
+	if(BUILD_TESTING)
+		add_subdirectory("test")
+	endif()
 
-if(EZ_MATH_BUILD_TESTS)
-	add_subdirectory("test")
+	install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+		TYPE INCLUDE
+		FILES_MATCHING
+		PATTERN "*.h" PATTERN "*.hpp"
+	)
+
+	install(TARGETS ez-math
+		EXPORT "ez-math-export"
+	)
+
+	install_package(
+		NAME "ez-math"
+		NAMESPACE "ez::"
+		DESTINATION "${EZ_MATH_CONFIG_DIR}"
+		EXPORT "ez-math-export"
+		VERSION "${EZ_MATH_VERSION}"
+		COMPATIBILITY "SameMajorVersion"
+		PRECONFIG "cmake/preconfig.cmake"
+		ARCH_INDEPENDENT
+	)
 endif()
-
-
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
-	TYPE INCLUDE
-	FILES_MATCHING
-	PATTERN "*.h" PATTERN "*.hpp"
-)
-
-install(TARGETS ez-math
-	EXPORT "ez-math-export"
-)
-
-install_package(
-	NAME "ez-math"
-	NAMESPACE "ez::"
-	DESTINATION "${EZ_MATH_CONFIG_DIR}"
-	EXPORT "ez-math-export"
-	VERSION "${EZ_MATH_VERSION}"
-	COMPATIBILITY "SameMajorVersion"
-	PRECONFIG "cmake/preconfig.cmake"
-	ARCH_INDEPENDENT
-)
