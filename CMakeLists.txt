@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
 
 project(EZ_MATH
-	VERSION 0.4.0
+	VERSION 0.4.1
 	LANGUAGES C CXX
 )
 
@@ -13,13 +13,24 @@ FetchContent_Declare(
 	GIT_REPOSITORY "https://github.com/errata-c/ez-cmake.git"
 	GIT_TAG "main"
 )
-FetchContent_MakeAvailable(ez-cmake)
+FetchContent_Declare(
+	glm
+	GIT_REPOSITORY "https://github.com/g-truc/glm.git"
+	GIT_TAG "0.9.9.8"
+	FIND_PACKAGE_ARGS CONFIG REQUIRED
+)
+FetchContent_Declare(
+	ez-meta
+	GIT_REPOSITORY "https://github.com/errata-c/ez-meta.git"
+	GIT_TAG "main"
+	FIND_PACKAGE_ARGS CONFIG REQUIRED
+)
+
+FetchContent_MakeAvailable(ez-cmake glm ez-meta)
+
+
 
 set(EZ_MATH_CONFIG_DIR "share/ez-math" CACHE STRING "The relative directory to install package config files.")
-
-
-find_package(glm CONFIG REQUIRED)
-find_package(ez-meta CONFIG REQUIRED)
 
 add_library(ez-math INTERFACE)
 

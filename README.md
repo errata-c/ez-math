@@ -1,6 +1,6 @@
 # ez-math
 
-This library adds math constants, polynomial functions, trigonometric functions, and color classes.
+This library provides a number of common mathematical utilities. It integrates the standard library complex type into `glm` such that it can be used almost identically to `glm` quaternion.
 
 Once the package is installed, it can be found using the cmake find_package command:
 `find_package(ez-math CONFIG REQUIRED)`
