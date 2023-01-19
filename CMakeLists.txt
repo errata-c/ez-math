@@ -17,13 +17,13 @@ FetchContent_Declare(
 	glm
 	GIT_REPOSITORY "https://github.com/g-truc/glm.git"
 	GIT_TAG "0.9.9.8"
-	FIND_PACKAGE_ARGS CONFIG REQUIRED
+	FIND_PACKAGE_ARGS CONFIG
 )
 FetchContent_Declare(
 	ez-meta
 	GIT_REPOSITORY "https://github.com/errata-c/ez-meta.git"
 	GIT_TAG "main"
-	FIND_PACKAGE_ARGS CONFIG REQUIRED
+	FIND_PACKAGE_ARGS CONFIG
 )
 
 FetchContent_MakeAvailable(ez-cmake glm ez-meta)
